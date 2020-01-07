@@ -1,0 +1,206 @@
+# -*- coding: utf-8 -*-
+
+__author__ = "${author}"
+__copyright__ = "${author}"
+__license__ = "${license}"
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from ${qual_pkg} import __version__
+
+import os
+import re
+import psycopg2
+import psycopg2.extras
+
+from ._compat import logger, project_config_object
+
+
+__all__ = ['ModelPostgresqlOperations', 'SpiderPostgresqlOperations']
+
+
+SELECT_TMP = """
+                SELECT 
+                    {fields} 
+                FROM {schema}.{table} 
+                WHERE {conditions}
+            """
+
+INSERT_TMP = """
+                INSERT INTO 
+                    {schema}.{table} ({fields}) 
+                VALUES %s
+            """
+
+UPDATE_TMP = """
+                UPDATE 
+                    {schema}.{table} 
+                SET 
+                    {expression}
+                FROM(VALUES %s) AS data({fields}) 
+                WHERE {table}.{column} = data.{column}
+            """
+
+# postgresql info constant
+MODEL_POSTGRESQL_CONFIG = project_config_object.postgresql_model.__dict__
+SPIDER_POSTGRESQL_CONFIG = project_config_object.postgresql_spider.__dict__
+
+
+class BasePostgresqlOperations(object):
+    def __init__(self, pgconf, **kwargs):
+        if not isinstance(pgconf, dict):
+            raise Exception('Postgresql config must with Dict.')
+
+        if len([k for k in ['host', 'port', 'database', 'user', 'password', 'schema', 'table'] if k in pgconf.keys()]) != 7:
+            raise Exception(
+                "Postgresql config-dict must has keys: host,port,database,user,password,schema,table")
+
+        self.schema = pgconf['schema']
+        if not isinstance(pgconf['table'], dict):
+            tables = pgconf['table'].__dict__
+            self.input_table = tables.get('input', '')
+            self.output_table = tables.get('output', '')
+        else:
+            self.input_table = pgconf['table'].get('input', '')
+            self.output_table = pgconf['table'].get('output', '')
+        self.pg_cfg = {
+            'host': pgconf['host'],
+            'port': pgconf['port'],
+            'user': pgconf['user'],
+            'password': pgconf['password'],
+            'database': pgconf['database'],
+        }
+
+
+class SpiderPostgresqlOperations(BasePostgresqlOperations):
+    def __init__(self, pgconf=SPIDER_POSTGRESQL_CONFIG, **kwargs):
+        super().__init__(pgconf, **kwargs)
+
+    def bulk_extract_by_md5(self, md5iter):
+        fields = """
+            url,
+            url_md5,
+            domain,
+            domain_md5,
+            url_ping,
+            domain_ping,
+            url_is_pic,
+            domain_is_pic,
+            url_iframe,
+            domain_iframe,
+            url_iframe_info,
+            domain_iframe_info,
+            url_title,
+            domain_title,
+            url_real_url,
+            domain_real_url,
+            source_name,
+            cert_code,
+            pv,
+            url_fn_md5,
+            url_pic_fn_md5,
+            domain_fn_md5,
+            domain_pic_fn_md5
+        """
+        conditions = "url_md5 in %s"
+        sql = SELECT_TMP.format(
+            schema=self.schema, table=self.input_table, fields=fields, conditions=conditions)
+        # logger.info(f"query sql: {sql}")
+        set_tuple = (tuple([x for x in md5iter]),)
+        try:
+            with psycopg2.connect(**self.pg_cfg) as conn:
+                cursor = conn.cursor(
+                    cursor_factory=psycopg2.extras.RealDictCursor)
+                psycopg2.extras.execute_values(
+                    cursor, sql, set_tuple, page_size=1000)
+                exe_res = cursor.fetchall()
+                conn.commit()
+            return exe_res
+        except Exception as e:
+            logger.warning(f"query sql: {sql}")
+            logger.exception(e)
+            return []
+
+
+class ModelPostgresqlOperations(BasePostgresqlOperations):
+    def __init__(self, pgconf=MODEL_POSTGRESQL_CONFIG, **kwargs):
+        super().__init__(pgconf, **kwargs)
+
+    def bulk_insert_md5(self, md5iter):
+        """bulk with insert-operation only fields 'md5' and 'taskid'
+
+        Parameters
+        ----------
+        md5iter : [list or tuple]
+            the insert values. Must with data type: [('111',), ('222',)]
+
+        Returns
+        -------
+        [bool]
+            bulk execute success flag
+        """
+        fields = 'url_md5'
+        sql = INSERT_TMP.format(
+            schema=self.schema, table=self.input_table, fields=fields)
+        # logger.info(f"insert sql: {sql}")
+        tuple_values = (tuple([x for x in md5iter]),)
+        try:
+            # assert len(fields.split(',')) == len(tuple_values[0])
+            with psycopg2.connect(**self.pg_cfg) as conn:
+                cursor = conn.cursor(
+                    cursor_factory=psycopg2.extras.RealDictCursor)
+                psycopg2.extras.execute_values(
+                    cursor, sql, tuple_values, page_size=1000)
+                conn.commit()
+            return True
+        except Exception as e:
+            logger.warning(f"insert sql: {sql}")
+            logger.exception(e)
+            return False
+
+    def bulk_insert_results(self, bulkdata):
+        fields = """
+                    url,
+                    url_md5,
+                    domain,
+                    domain_md5,
+                    url_ping,
+                    domain_ping,
+                    url_is_pic,
+                    domain_is_pic,
+                    url_iframe,
+                    domain_iframe,
+                    url_title,
+                    domain_title,
+                    url_real_url,
+                    domain_real_url,
+                    is_black,
+                    rank,
+                    code,
+                    evilcode,
+                    url_type,
+                    score,
+                    black_one,
+                    black_iframe,
+                    source,
+                    pv,
+                    cert_code
+                """
+        sql = INSERT_TMP.format(
+            schema=self.schema, table=self.output_table, fields=fields)
+        # logger.info(f"insert sql: {sql}")
+        try:
+            assert len(fields.split(',')) == len(bulkdata[0])
+            with psycopg2.connect(**self.pg_cfg) as conn:
+                cursor = conn.cursor(
+                    cursor_factory=psycopg2.extras.RealDictCursor)
+                psycopg2.extras.execute_values(
+                    cursor, sql, bulkdata, page_size=1000)
+                conn.commit()
+            return True
+        except Exception as e:
+            logger.warning(f"insert sql: {sql}")
+            logger.exception(e)
+            return False

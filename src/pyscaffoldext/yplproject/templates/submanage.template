@@ -1,0 +1,43 @@
+# -*- coding: utf-8 -*-
+
+__author__ = "${author}"
+__copyright__ = "${author}"
+__license__ = "${license}"
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from ${qual_pkg} import __version__
+
+import os
+import re
+
+from ._compat import logger
+
+
+class SubModuleNameInterfaceClass(object):
+    """docstring for ModuleNameClass"""
+
+    def __init__(self, *args, **kwargs):
+        # super(ModuleNameInterfaceClass, self).__init__()
+        pass
+
+    def run_module(self, metadata, **kwargs):
+        """Interface functon,call inner main handle function."""
+        try:
+            res = self._main_handle(metadata)
+        except Exception as e:
+            logger.exception(e)
+            res = {}
+
+        # output check
+        default_res = {}
+
+        # some necessary output verification steps res vs default_res
+
+        return default_res
+
+    def _main_handle(self, metadata, **kwargs):
+        """real execute func enter."""
+        pass

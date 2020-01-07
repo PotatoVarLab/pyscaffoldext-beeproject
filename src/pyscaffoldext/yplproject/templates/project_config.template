@@ -1,0 +1,15 @@
+development:
+  envname: development
+  logging:
+    dirpath: '/tmp/logs'
+    debug: True
+    # when: s
+    backCount: 6
+
+production:
+  envname: production
+  logging:
+    dirpath: '/tmp/logs'
+    debug: False
+    when: midnight
+    backCount: 6
