@@ -2,4 +2,4 @@
 Contributors
 ============
 
-* Brook <brooks.hua@gmail.com>
+* brooks <brooks.hua@gmail.com>

@@ -1,0 +1,14 @@
+# -*- coding: utf-8 -*-
+
+
+import os
+import sys
+import re
+
+#### import project pgk ####
+# from project_src.manage import ModuleNameInterfaceClass
+
+#### module initialization ####
+# handler = ModuleNameInterfaceClass()
+
+#### prepare test data ####
