@@ -280,8 +280,7 @@ def create_logger(project_name, confdict={}, modulepath=''):
 
 def _auto_compatible_logger_and_yaml():
     project_config_object = DictToObj({})
-    isproject = False if os.path.exists(
-        os.path.join(os.path.dirname(BASE_DIR), '__init__.py')) else True
+    isproject = True if os.path.exists(os.path.join(os.path.dirname(BASE_DIR), 'project_config.yaml')) else False
     if isproject:
         project_name = os.path.dirname(BASE_DIR).split('/')[-1]
         module_name = BASE_DIR.split('/')[-1]
@@ -309,7 +308,7 @@ def _auto_compatible_logger_and_yaml():
         path_name = BASE_DIR.split('/')
         for idx, name in enumerate(path_name):
             if idx and os.path.isdir(os.path.join('/', '/'.join(path_name[:idx]), name)):
-                if not os.path.exists(os.path.join('/', '/'.join(path_name[:idx]), name, '__init__.py')):
+                if os.path.exists(os.path.join('/', '/'.join(path_name[:idx]), name, 'project_config.yaml')):
                     project_dirname = name
             if name == BASE_DIR.split('/')[-2]:
                 break

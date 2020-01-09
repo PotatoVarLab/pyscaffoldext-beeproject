@@ -103,95 +103,100 @@ def add_beeproject(struct, opts):
                             gitignore_all,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "references", ".gitignore"]
-    struct = helpers.ensure(struct, path,
-                            "",
-                            helpers.NO_OVERWRITE)
+    # path = [opts["project"], "references", ".gitignore"]
+    # struct = helpers.ensure(struct, path,
+    #                         "",
+    #                         helpers.NO_OVERWRITE)
 
     path = [opts["project"], "reports", "figures", ".gitignore"]
     struct = helpers.ensure(struct, path,
                             "",
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "environment.yaml"]
-    environment_yaml = templates.environment_yaml(opts)
-    struct = helpers.ensure(struct, path,
-                            environment_yaml,
-                            helpers.NO_OVERWRITE)
+    # path = [opts["project"], "environment.yaml"]
+    # environment_yaml = templates.environment_yaml(opts)
+    # struct = helpers.ensure(struct, path,
+    #                         environment_yaml,
+    #                         helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "requirements.txt"]
-    struct = helpers.reject(struct, path)
+    # path = [opts["project"], "requirements.txt"]
+    # struct = helpers.reject(struct, path)
 
     # path = [opts["project"], "configs", ".gitignore"]
     # struct = helpers.ensure(struct, path,
     #                         "",
     #                         helpers.NO_OVERWRITE)
 
-    # custom package
-    path = [opts["project"], "src", "run_project_main.py"]
+    #### custom package ####
+    path = [opts["project"], "src", opts["project"], "environment.yaml"]
+    environment_yaml = templates.environment_yaml(opts)
+    struct = helpers.ensure(struct, path,
+                            environment_yaml,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], "requirements.txt"]
+    struct = helpers.reject(struct, path)
+
+    path = [opts["project"], "src", opts["project"], "run_project_main.py"]
     run_project_main = templates.run_project_main(opts)
     struct = helpers.ensure(struct, path,
                             run_project_main,
                             helpers.NO_OVERWRITE)
-
-    # path = [opts["project"], "src", opts['package'], ".gitignore"]
-    # struct = helpers.ensure(struct, path,
-    #                         templates.gitignore_data(opts),
-    #                         helpers.NO_OVERWRITE)
-    # for folder in ('submodule', 'tests', 'utils'):
-    #     path = [opts["project"], "src", folder]
-    #     struct = helpers.ensure(struct, path,
-    #                             gitignore_all,
-    #                             helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "project_config.yaml"]
-    project_config_yaml = templates.project_config(opts)
-    struct = helpers.ensure(struct, path,
-                            project_config_yaml,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "settings.py"]
-    settings = templates.settings(opts)
-    struct = helpers.ensure(struct, path,
-                            settings,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "manage.py"]
-    project_manage = templates.manage(opts)
-    struct = helpers.ensure(struct, path,
-                            project_manage,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "_compat.py"]
-    compat = templates.compat(opts)
-    struct = helpers.ensure(struct, path,
-                            compat,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "postgresql_operations.py"]
-    postgresql_operations = templates.postgresql(opts)
-    struct = helpers.ensure(struct, path,
-                            postgresql_operations,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts['package'], "submodule", "__init__.py"]
+    
+    path = [opts["project"], "src", opts['project'], opts['package'],  "__init__.py"]
     init = templates.init(opts)
     struct = helpers.ensure(struct, path,
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts['package'], "submodule", "settings.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "project_config.yaml"]
+    project_config_yaml = templates.project_config(opts)
+    struct = helpers.ensure(struct, path,
+                            project_config_yaml,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "settings.py"]
+    settings = templates.settings(opts)
     struct = helpers.ensure(struct, path,
                             settings,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts['package'], "submodule", "manage.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "manage.py"]
+    project_manage = templates.manage(opts)
+    struct = helpers.ensure(struct, path,
+                            project_manage,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "_compat.py"]
+    compat = templates.compat(opts)
+    struct = helpers.ensure(struct, path,
+                            compat,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "postgresql_operations.py"]
+    postgresql_operations = templates.postgresql(opts)
+    struct = helpers.ensure(struct, path,
+                            postgresql_operations,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "__init__.py"]
+    init = templates.init(opts)
+    struct = helpers.ensure(struct, path,
+                            init,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "settings.py"]
+    struct = helpers.ensure(struct, path,
+                            settings,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "manage.py"]
     submanage = templates.submanage(opts)
     struct = helpers.ensure(struct, path,
                             submanage,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts['package'], "submodule", "_compat.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "_compat.py"]
     struct = helpers.ensure(struct, path,
                             compat,
                             helpers.NO_OVERWRITE)

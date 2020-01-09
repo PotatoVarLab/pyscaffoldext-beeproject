@@ -35,8 +35,8 @@ UPDATE_TMP = """
             """
 
 # postgresql info constant
-MODEL_POSTGRESQL_CONFIG = project_config_object.postgresql_model.__dict__
-SPIDER_POSTGRESQL_CONFIG = project_config_object.postgresql_spider.__dict__
+# MODEL_POSTGRESQL_CONFIG = project_config_object.postgresql_model.__dict__
+# SPIDER_POSTGRESQL_CONFIG = project_config_object.postgresql_spider.__dict__
 
 
 class BasePostgresqlOperations(object):
@@ -65,133 +65,24 @@ class BasePostgresqlOperations(object):
         }
 
 
-class SpiderPostgresqlOperations(BasePostgresqlOperations):
-    def __init__(self, pgconf=SPIDER_POSTGRESQL_CONFIG, **kwargs):
-        super().__init__(pgconf, **kwargs)
-
-    def bulk_extract_by_md5(self, md5iter):
-        fields = """
-            url,
-            url_md5,
-            domain,
-            domain_md5,
-            url_ping,
-            domain_ping,
-            url_is_pic,
-            domain_is_pic,
-            url_iframe,
-            domain_iframe,
-            url_iframe_info,
-            domain_iframe_info,
-            url_title,
-            domain_title,
-            url_real_url,
-            domain_real_url,
-            source_name,
-            cert_code,
-            pv,
-            url_fn_md5,
-            url_pic_fn_md5,
-            domain_fn_md5,
-            domain_pic_fn_md5
-        """
-        conditions = "url_md5 in %s"
-        sql = SELECT_TMP.format(
-            schema=self.schema, table=self.input_table, fields=fields, conditions=conditions)
-        # logger.info(f"query sql: {sql}")
-        set_tuple = (tuple([x for x in md5iter]),)
-        try:
-            with psycopg2.connect(**self.pg_cfg) as conn:
-                cursor = conn.cursor(
-                    cursor_factory=psycopg2.extras.RealDictCursor)
-                psycopg2.extras.execute_values(
-                    cursor, sql, set_tuple, page_size=1000)
-                exe_res = cursor.fetchall()
-                conn.commit()
-            return exe_res
-        except Exception as e:
-            logger.warning(f"query sql: {sql}")
-            logger.exception(e)
-            return []
-
-
-class ModelPostgresqlOperations(BasePostgresqlOperations):
-    def __init__(self, pgconf=MODEL_POSTGRESQL_CONFIG, **kwargs):
-        super().__init__(pgconf, **kwargs)
-
-    def bulk_insert_md5(self, md5iter):
-        """bulk with insert-operation only fields 'md5' and 'taskid'
-
-        Parameters
-        ----------
-        md5iter : [list or tuple]
-            the insert values. Must with data type: [('111',), ('222',)]
-
-        Returns
-        -------
-        [bool]
-            bulk execute success flag
-        """
-        fields = 'url_md5'
-        sql = INSERT_TMP.format(
-            schema=self.schema, table=self.input_table, fields=fields)
-        # logger.info(f"insert sql: {sql}")
-        tuple_values = (tuple([x for x in md5iter]),)
-        try:
-            # assert len(fields.split(',')) == len(tuple_values[0])
-            with psycopg2.connect(**self.pg_cfg) as conn:
-                cursor = conn.cursor(
-                    cursor_factory=psycopg2.extras.RealDictCursor)
-                psycopg2.extras.execute_values(
-                    cursor, sql, tuple_values, page_size=1000)
-                conn.commit()
-            return True
-        except Exception as e:
-            logger.warning(f"insert sql: {sql}")
-            logger.exception(e)
-            return False
-
-    def bulk_insert_results(self, bulkdata):
-        fields = """
-                    url,
-                    url_md5,
-                    domain,
-                    domain_md5,
-                    url_ping,
-                    domain_ping,
-                    url_is_pic,
-                    domain_is_pic,
-                    url_iframe,
-                    domain_iframe,
-                    url_title,
-                    domain_title,
-                    url_real_url,
-                    domain_real_url,
-                    is_black,
-                    rank,
-                    code,
-                    evilcode,
-                    url_type,
-                    score,
-                    black_one,
-                    black_iframe,
-                    source,
-                    pv,
-                    cert_code
-                """
-        sql = INSERT_TMP.format(
-            schema=self.schema, table=self.output_table, fields=fields)
-        # logger.info(f"insert sql: {sql}")
-        try:
-            assert len(fields.split(',')) == len(bulkdata[0])
-            with psycopg2.connect(**self.pg_cfg) as conn:
-                cursor = conn.cursor(
-                    cursor_factory=psycopg2.extras.RealDictCursor)
-                psycopg2.extras.execute_values(
-                    cursor, sql, bulkdata, page_size=1000)
-                conn.commit()
-            return True
-        except Exception as e:
-            logger.warning(f"insert sql: {sql}")
-            logger.exception(e)
-            return False
+#class ModelPostgresqlOperations(BasePostgresqlOperations):
+#    def __init__(self, pgconf=MODEL_POSTGRESQL_CONFIG, **kwargs):
+#        super().__init__(pgconf, **kwargs)
+#
+#    def bulk_insert_results(self, bulkdata):
+#        fields = """"""
+#        sql = INSERT_TMP.format(schema=self.schema, table=self.output_table, fields=fields)
+#        # logger.info(f"insert sql: {sql}")
+#        try:
+#            assert len(fields.split(',')) == len(bulkdata[0])
+#            with psycopg2.connect(**self.pg_cfg) as conn:
+#                cursor = conn.cursor(
+#                    cursor_factory=psycopg2.extras.RealDictCursor)
+#                psycopg2.extras.execute_values(
+#                    cursor, sql, bulkdata, page_size=1000)
+#                conn.commit()
+#            return True
+#        except Exception as e:
+#            logger.warning(f"insert sql: {sql}")
+#            logger.exception(e)
+#            return False
