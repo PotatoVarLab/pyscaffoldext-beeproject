@@ -230,3 +230,42 @@ def init(opts):
         opts["distribution"] = "'{}'".format(opts["project"])
     template = get_template("__init__")
     return template.substitute(opts)
+
+
+def sphinx_conf(opts):
+    """Template of conf.py
+    Args:
+        opts: mapping parameters as dictionary
+    Returns:
+        str: file content as string
+    """
+    template = get_template("sphinx_conf")
+    return template.substitute(opts)
+
+
+def project_init(opts):
+    """Template of project __init__.py
+
+    Args:
+        opts: mapping parameters as dictionary
+
+    Returns:
+        str: file content as string
+    """
+    if opts["package"] == opts["project"]:
+        opts["distribution"] = "__name__"
+    else:
+        opts["distribution"] = "'{}'".format(opts["project"])
+    template = get_template("project_init_py")
+    return template.substitute(opts)
+
+
+def project_logger(opts):
+    """Template of conf.py
+    Args:
+        opts: mapping parameters as dictionary
+    Returns:
+        str: file content as string
+    """
+    template = get_template("logger")
+    return template.substitute(opts)

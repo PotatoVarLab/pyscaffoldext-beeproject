@@ -3,13 +3,16 @@
 
 import os
 import re
+import logging
 import psycopg2
 import psycopg2.extras
 
-from ._compat import logger, project_config_object
+from ._compat import project_config_object
 
 
-__all__ = ['ModelPostgresqlOperations', 'SpiderPostgresqlOperations']
+# __all__ = ['ModelPostgresqlOperations', 'SpiderPostgresqlOperations']
+
+logger = logging.getLogger(__name__)
 
 
 SELECT_TMP = """

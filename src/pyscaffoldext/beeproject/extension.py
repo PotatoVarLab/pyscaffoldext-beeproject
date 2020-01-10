@@ -56,9 +56,14 @@ class BeeProject(Extension):
         )
         actions = self.register(
             actions,
-            replace_readme,
+            remove_file,
             after='add_beeproject'
         )
+        # actions = self.register(
+        #     actions,
+        #     replace_readme,
+        #     after='add_beeproject'
+        # )
         return actions
 
 
@@ -128,6 +133,12 @@ def add_beeproject(struct, opts):
     #                         helpers.NO_OVERWRITE)
 
     #### custom package ####
+    path = [opts["project"], "src", opts['project'],  "__init__.py"]
+    init = templates.init(opts)
+    struct = helpers.ensure(struct, path,
+                            init,
+                            helpers.NO_OVERWRITE)
+
     path = [opts["project"], "src", opts["project"], "environment.yaml"]
     environment_yaml = templates.environment_yaml(opts)
     struct = helpers.ensure(struct, path,
@@ -142,64 +153,108 @@ def add_beeproject(struct, opts):
     struct = helpers.ensure(struct, path,
                             run_project_main,
                             helpers.NO_OVERWRITE)
-    
-    path = [opts["project"], "src", opts['project'], opts['package'],  "__init__.py"]
-    init = templates.init(opts)
+
+    path = [opts["project"], "src", opts['project'],
+            opts['package'],  "__init__.py"]
+    init = templates.project_init(opts)
     struct = helpers.ensure(struct, path,
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "project_config.yaml"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "project_config.yaml"]
     project_config_yaml = templates.project_config(opts)
     struct = helpers.ensure(struct, path,
                             project_config_yaml,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "settings.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "settings.py"]
     settings = templates.settings(opts)
     struct = helpers.ensure(struct, path,
                             settings,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "manage.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "manage.py"]
     project_manage = templates.manage(opts)
     struct = helpers.ensure(struct, path,
                             project_manage,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "_compat.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "_compat.py"]
     compat = templates.compat(opts)
     struct = helpers.ensure(struct, path,
                             compat,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "postgresql_operations.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "_log.py"]
+    log = templates.project_logger(opts)
+    struct = helpers.ensure(struct, path,
+                            log,
+                            helpers.NO_OVERWRITE)
+
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "postgresql_operations.py"]
     postgresql_operations = templates.postgresql(opts)
     struct = helpers.ensure(struct, path,
                             postgresql_operations,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "__init__.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "submodule", "__init__.py"]
     init = templates.init(opts)
     struct = helpers.ensure(struct, path,
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "settings.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "submodule", "settings.py"]
     struct = helpers.ensure(struct, path,
                             settings,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "manage.py"]
+    path = [opts["project"], "src", opts["project"],
+            opts['package'], "submodule", "manage.py"]
     submanage = templates.submanage(opts)
     struct = helpers.ensure(struct, path,
                             submanage,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "_compat.py"]
-    struct = helpers.ensure(struct, path,
-                            compat,
-                            helpers.NO_OVERWRITE)
+    return struct, opts
+
+
+def remove_file(struct, opts):
+    """Remove a file from the project tree representation if existent by our own
+
+    Args:
+        struct (dict): project representation as (possibly) nested
+            :obj:`dict`.
+        opts (dict): given options, see :obj:`create_project` for
+            an extensive list.
+
+    Returns:
+        struct, opts: updated project representation and options
+    """
+    file_path = [opts['project'], "requirements.txt"]
+    struct = helpers.reject(struct, file_path)
+    file_path = [opts['project'], "environment.yaml"]
+    struct = helpers.reject(struct, file_path)
+
+    file_path = [opts['project'], "setup.cfg"]
+    struct = helpers.reject(struct, file_path)
+    file_path = [opts['project'], "setup.py"]
+    struct = helpers.reject(struct, file_path)
+
+    file_path = [opts['project'], "src", opts["package"]]
+    struct = helpers.reject(struct, file_path)
+
+    file_path = [opts['project'], "docs", "conf.py"]
+    struct = helpers.reject(struct, file_path)
+    docs_conf = templates.sphinx_conf(opts)
+    struct = helpers.ensure(struct, file_path, docs_conf, helpers.NO_OVERWRITE)
 
     return struct, opts
 

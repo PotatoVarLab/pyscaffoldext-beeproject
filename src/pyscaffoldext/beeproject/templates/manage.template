@@ -3,13 +3,13 @@
 
 import os
 import re
-
-from ._compat import logger
+import logging
 
 """
 # If need to use sub-module 
 >>> from .submodule.manage import SubModuleNameInterfaceClass
 """
+logger = logging.getLogger(__name__)
 
 
 class ModuleNameInterfaceClass(object):
