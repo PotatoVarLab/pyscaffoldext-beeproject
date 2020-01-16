@@ -1,0 +1,23 @@
+[program:${root_pkg}]
+;command=
+;environment=
+;directory=
+;user=
+
+stdout_logfile=/tmp/supervisor_out_${root_pkg}.log
+stdout_logfile_maxbytes=100MB
+stdout_logfile_backups=6
+
+stderr_logfile=/tmp/supervisor_err_${root_pkg}.log
+stderr_logfile_maxbytes=10MB
+stderr_logfile_backups=6
+
+startsecs=3
+startretries=50
+nodaemon=false
+
+stopasgroup = true
+killasgroup = true
+autostart = false
+autorestart = unexpected
+
