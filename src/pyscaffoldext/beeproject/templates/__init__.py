@@ -269,3 +269,14 @@ def project_logger(opts):
     """
     template = get_template("logger")
     return template.substitute(opts)
+
+
+def supervisor_ini(opts):
+    """Template of supervisor ini file
+    Args:
+        opts: mapping parameters as dictionary
+    Returns:
+        str: file content as string
+    """
+    template = get_template("supervisor_ini")
+    return template.substitute(opts)

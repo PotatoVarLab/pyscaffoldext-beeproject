@@ -153,71 +153,67 @@ def add_beeproject(struct, opts):
     struct = helpers.ensure(struct, path,
                             run_project_main,
                             helpers.NO_OVERWRITE)
+    
+    path = [opts["project"], "src", opts["project"], "supervisor_{}.ini".format(opts['package'])]
+    supervisor_ini = templates.supervisor_ini(opts)
+    struct = helpers.ensure(struct, path,
+                            supervisor_ini,
+                            helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts['project'],
-            opts['package'],  "__init__.py"]
+    path = [opts["project"], "src", opts['project'], opts['package'],  "__init__.py"]
     init = templates.project_init(opts)
     struct = helpers.ensure(struct, path,
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "project_config.yaml"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "project_config.yaml"]
     project_config_yaml = templates.project_config(opts)
     struct = helpers.ensure(struct, path,
                             project_config_yaml,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "settings.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "settings.py"]
     settings = templates.settings(opts)
     struct = helpers.ensure(struct, path,
                             settings,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "manage.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "manage.py"]
     project_manage = templates.manage(opts)
     struct = helpers.ensure(struct, path,
                             project_manage,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "_compat.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "_compat.py"]
     compat = templates.compat(opts)
     struct = helpers.ensure(struct, path,
                             compat,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "_log.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "_log.py"]
     log = templates.project_logger(opts)
     struct = helpers.ensure(struct, path,
                             log,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "postgresql_operations.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "postgresql_operations.py"]
     postgresql_operations = templates.postgresql(opts)
     struct = helpers.ensure(struct, path,
                             postgresql_operations,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "submodule", "__init__.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "__init__.py"]
     init = templates.init(opts)
     struct = helpers.ensure(struct, path,
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "submodule", "settings.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "settings.py"]
     struct = helpers.ensure(struct, path,
                             settings,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"],
-            opts['package'], "submodule", "manage.py"]
+    path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "manage.py"]
     submanage = templates.submanage(opts)
     struct = helpers.ensure(struct, path,
                             submanage,
