@@ -1,14 +1,51 @@
 # -*- coding: utf-8 -*-
+"""
+The project main script which executed with starting.
+Default with development mode.which means use development config in someone's local debug.
+Use the option argument "--deploy" with deployment on production environment,used production config.
+
+Local development debug
+>>> /{path}/bin/python run_project_name.py
+
+
+Stable project deploy on production
+>>> /{path}/bin/python run_project_name.py --deploy
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 
 import os
 import sys
-import re
+import logging
+import argparse
+
+
+print(__doc__)
+
+logger = logging.getLogger(__name__)
+
+parser = argparse.ArgumentParser(description='The executed script of project starting.')
+parser.add_argument('--deploy', action='store_true', help='deployment option')
+
+args = parser.parse_args()
+if args.deploy:
+    logger.warning('* Environment: production')
+    logger.warning('WARNING: Do not use the development config in a production environment.')
+    os.environ['PRODUCTION_ENV'] = 'true'  # set environment variable to marked production
+else:
+    logger.warning('* Environment: development')
+    logger.warning('* Debug mode: on')
+
 
 #### import project pgk ####
-# from project_src.manage import ModuleNameInterfaceClass
+# from project_pkg.manage import ModuleNameInterfaceClass
 
 #### module initialization ####
 # handler = ModuleNameInterfaceClass()
 
 #### prepare test data ####
+# meta = {}
+#handler = ModuleNameInterfaceClass(meta)

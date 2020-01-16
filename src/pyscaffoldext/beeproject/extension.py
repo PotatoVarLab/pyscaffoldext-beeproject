@@ -148,7 +148,7 @@ def add_beeproject(struct, opts):
     path = [opts["project"], "src", opts["project"], "requirements.txt"]
     struct = helpers.reject(struct, path)
 
-    path = [opts["project"], "src", opts["project"], "run_project_main.py"]
+    path = [opts["project"], "src", opts["project"], "run_{}.py".format(opts['package'])]
     run_project_main = templates.run_project_main(opts)
     struct = helpers.ensure(struct, path,
                             run_project_main,

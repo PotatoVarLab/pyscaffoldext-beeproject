@@ -4,7 +4,7 @@ import os
 import re
 import sys
 import yaml
-
+import functools
 from ._log import create_logger
 
 
@@ -23,6 +23,7 @@ class DictToObj(object):
                 setattr(self, a, DictToObj(b) if isinstance(b, dict) else b)
 
 
+@functools.lru_cache()
 def auto_parse_project_yaml():
     project_config_object = DictToObj({})
     project_logging_config = {}
@@ -33,7 +34,7 @@ def auto_parse_project_yaml():
                 allcfg = yaml.safe_load(yamlf)
             global_cfg = DictToObj(allcfg)
             # == get system environment varible ==
-            if os.environ.get('PRODUCTION_ENVIRONMENT', None):
+            if os.environ.get('PRODUCTION_ENV', 'unknown') != 'unknown':
                 project_config_object = global_cfg.production
             else:
                 project_config_object = global_cfg.development
@@ -43,12 +44,11 @@ def auto_parse_project_yaml():
     else:
         pass
 
-    return project_logging_config, project_config_object
+    basedir_name = os.path.basename(BASE_DIR)
+    project_dir = os.path.basename(os.path.dirname(BASE_DIR))
+    logger = create_logger(project_name=basedir_name,confdict=project_logging_config, modulepath=project_dir)
+
+    return project_config_object
 
 
-project_logging_config, project_config_object = auto_parse_project_yaml()
-
-basedir_name = os.path.basename(BASE_DIR)
-project_dir = os.path.basename(os.path.dirname(BASE_DIR))
-
-logger = create_logger(project_name=basedir_name, confdict=project_logging_config, modulepath=project_dir)
+project_config_object = auto_parse_project_yaml()
