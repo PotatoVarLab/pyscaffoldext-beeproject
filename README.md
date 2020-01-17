@@ -4,30 +4,27 @@
 
 The final directory structure looks like:
 ```
+Project_Dir
 ├── AUTHORS.rst             <- List of developers and maintainers.
 ├── CHANGELOG.rst           <- Changelog to keep track of new features and fixes.
 ├── LICENSE.txt             <- License as chosen on the command-line.
 ├── README.md               <- The top-level README for developers.
 ├── data
-│   ├── external            <- Data from third party sources.
-│   ├── interim             <- Intermediate data that has been transformed.
-│   ├── processed           <- The final, canonical data sets for modeling.
-│   └── raw                 <- The original, immutable data dump.
 ├── docs                    <- Directory for Sphinx documentation in rst or md.
-├── environment.yaml        <- The conda environment file for reproducibility.
 ├── models                  <- Trained and serialized models, model predictions,
 │                              or model summaries.
 ├── notebooks               <- Jupyter notebooks. Naming convention is a number (for
 │                              ordering), the creator's initials and a description,
 │                              e.g. `1.0-fw-initial-data-exploration`.
-├── references              <- Data dictionaries, manuals, and all other materials.
 ├── reports                 <- Generated analysis as HTML, PDF, LaTeX, etc.
 │   └── figures             <- Generated plots and figures for reports.
-├── setup.cfg               <- Declarative configuration of your project.
-├── setup.py                <- Use `python setup.py develop` to install for development or
-|                              or create a distribution with `python setup.py bdist_wheel`.
 ├── src
-│   └── PYTHON_PKG          <- Actual Python package where the main functionality goes.
+│   └── Project_Name        <- Actual Python project which can be deploy to production
+│       └── environment.yaml                <- Actual Python project need conda environment yaml file
+│       └── run_python_project_main.py      <- Actual Python project some one part main execute script
+│       └── supervisor_project_main.ini     <- Actual Python project some one part main script supervisor ini template file
+│       └── project_name                    <- Actual Python project some one package template
+│       └── __init__.py                     <- Use for sphinx auto documents
 ├── tests                   <- Unit tests which can be run with `py.test`.
 ```
 
@@ -37,7 +34,7 @@ Just install this package with `pip install pyscaffoldext-beeproject`
 and note that `putup -h` shows a new option `--beeproject`.
 Creating a data science project is then as easy as:
 ```
-putup --beeproject my_simple_project
+putup --beeproject Simple_Project
 ```
 
 ## Note
@@ -50,4 +47,3 @@ information on PyScaffold see https://pyscaffold.org/.
 [Jupyter]: https://jupyter.org/
 [conda]: https://docs.conda.io/
 [pre-commit]: https://pre-commit.com/
-[dvc]: https://dvc.org/
