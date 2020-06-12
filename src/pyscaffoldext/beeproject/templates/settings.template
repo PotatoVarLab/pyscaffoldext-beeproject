@@ -3,10 +3,30 @@
 
 import os
 import sys
+from decouple import config
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-#####################
-# Module Local File #
-#####################
+#------------------------------------------------------------------------------
+# About Module
+#------------------------------------------------------------------------------
+## The module name 
+MODULE_NAME = os.path.basename(BASE_DIR)
+## The debug status
+DEBUG = config('DEBUG', default=True, cast=bool)
+
+#------------------------------------------------------------------------------
+# logger config
+#------------------------------------------------------------------------------
+## The common module logger config dict 
+MODULE_LOGGER_CONFIG = {
+    "directory": config("LOG_DIR", default=f"/tmp/logs/{MODULE_NAME}"),
+    "name": MODULE_NAME,
+    "debug": DEBUG,
+    "backups": 10,
+}
+
+#------------------------------------------------------------------------------
+# Others config
+#------------------------------------------------------------------------------

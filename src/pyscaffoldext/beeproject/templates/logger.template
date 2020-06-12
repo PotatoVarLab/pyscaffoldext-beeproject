@@ -3,252 +3,81 @@
 import os
 import re
 import sys
-import time
 import logging
-from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler
+from loguru import logger
 
-__all__ = ['create_logger']
+from .settings import BASE_DIR, MODULE_LOGGER_CONFIG
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DEFAULT_FORMAT = '%(asctime)s\tpid:%(process)d\t%(name)s\t%(filename)s[line:%(lineno)d]\t%(levelname)s\t%(message)s'
-_MIDNIGHT = 24 * 60 * 60  # number of seconds in a day
+__all__ = ['debug_status']
 
 
-class FileLock(object):
-    """ A file locking mechanism that has context-manager support so  
-        you can use it in a with statement. This should be relatively cross 
-        compatible as it doesn't rely on msvcrt or fcntl for the locking. 
-    """
+default_logger_config = {
+    "directory": f"/tmp/logs/{os.path.basename(BASE_DIR)}",
+    "name": os.path.basename(BASE_DIR),
+    "debug": True,
+    "backups": 10,
+    # please read loguru format docs
+    "format": "{time:YYYY:MM:DD HH:mm:ss,SSS} | pid:{process} | {name}[line:{line}] | {level} | {message}",
+}
 
-    def __init__(self, file_name, timeout=2, delay=.05):
-        """ Prepare the file locker. Specify the file to lock and optionally 
-            the maximum timeout and the delay between each attempt to lock. 
-        """
-        self.is_locked = False
-        self.lockfile = os.path.join(os.getcwd(), "%s.lock" % file_name)
-        self.file_name = file_name
-        self.timeout = timeout
-        self.delay = delay
-
-    def acquire(self):
-        """ Acquire the lock, if possible. If the lock is in use, it check again 
-            every `wait` seconds. It does this until it either gets the lock or 
-            exceeds `timeout` number of seconds, in which case it throws  
-            an exception. 
-        """
-        start_time = time.time()
-        while True:
-            try:
-                # 独占式打开文件
-                self.fd = os.open(self.lockfile, os.O_CREAT |
-                                  os.O_EXCL | os.O_RDWR)
-                break
-            except OSError as e:
-                time.sleep(self.delay)
-        self.is_locked = True
-
-    def release(self):
-        """ Get rid of the lock by deleting the lockfile.  
-            When working in a `with` statement, this gets automatically  
-            called at the end. 
-        """
-        # 关闭文件，删除文件
-        if self.is_locked:
-            os.close(self.fd)
-            os.unlink(self.lockfile)
-            self.is_locked = False
-
-    def __enter__(self):
-        """ Activated when used in the with statement.  
-            Should automatically acquire a lock to be used in the with block. 
-        """
-        if not self.is_locked:
-            self.acquire()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        """ Activated at the end of the with statement. 
-            It automatically releases the lock if it isn't locked. 
-        """
-        if self.is_locked:
-            self.release()
-
-    def __del__(self):
-        """ Make sure that the FileLock instance doesn't leave a lockfile 
-            lying around. 
-        """
-        self.release()
+necessary_key = default_logger_config.keys()
 
 
-class SafeTimedRotatingFileHandler(TimedRotatingFileHandler):
-    """
-    Handler for logging to a file, rotating the log file at certain timed
-    intervals.
+def __make_module_logger():
+    logger_config = default_logger_config
+    if isinstance(MODULE_LOGGER_CONFIG, dict):
+        for k, v in MODULE_LOGGER_CONFIG.items():
+            logger_config[k] = v
+            
+    fmt = logger_config.get('format', default_logger_config['format'])
+    directory = logger_config.get('directory', default_logger_config['directory'])
+    name = logger_config.get('name', default_logger_config['name'])
+    debug = logger_config.get('debug', True)
+    backups = logger_config.get('backups', 10)
 
-    If backupCount is > 0, when rollover is done, no more than backupCount
-    files are kept - the oldest ones are deleted.
-    """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    log_file = os.path.join(directory, f"{name}.log")
+    error_log_file = os.path.join(directory, f"error_{name}.log")
 
-    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None):
-        TimedRotatingFileHandler.__init__(
-            self, filename, when, interval, backupCount, encoding, delay, utc, atTime)
+    LOGGING_LEVEL = logging.DEBUG if debug else logging.INFO
+    
+    debug_filter = lambda record: record["level"].no < 40 if debug else record["level"].no in [20, 30]
 
-    def doRollover(self):
-        """
-        do a rollover; in this case, a date/time stamp is appended to the filename
-        when the rollover happens.  However, you want the file to be named for the
-        start of the interval, not the current time.  If there is a backup count,
-        then we have to get a list of matching filenames, sort them and remove
-        the one with the oldest suffix.
-        """
-        if self.stream:
-            self.stream.close()
-            self.stream = None
-        # get the time that this sequence started at and make it a TimeTuple
-        currentTime = int(time.time())
-        dstNow = time.localtime(currentTime)[-1]
-        t = self.rolloverAt - self.interval
-        if self.utc:
-            timeTuple = time.gmtime(t)
-        else:
-            timeTuple = time.localtime(t)
-            dstThen = timeTuple[-1]
-            if dstNow != dstThen:
-                if dstNow:
-                    addend = 3600
-                else:
-                    addend = -3600
-                timeTuple = time.localtime(t + addend)
-        # dfn = self.rotation_filename(self.baseFilename + "." + time.strftime(self.suffix, timeTuple))
-        # if os.path.exists(dfn):
-        #     os.remove(dfn)
-        # self.rotate(self.baseFilename, dfn)
-        # if self.backupCount > 0:
-        #     for s in self.getFilesToDelete():
-        #         os.remove(s)
-        ### changed ###
-        dfn = self.baseFilename + "." + time.strftime(self.suffix, timeTuple)
-        if not os.path.exists(dfn) and os.path.exists(self.baseFilename):
-            with FileLock(self.baseFilename):
-                os.rename(self.baseFilename, dfn)
-        if self.backupCount > 0:
-            for s in self.getFilesToDelete():
-                try:
-                    os.remove(s)
-                except Exception as e:
-                    pass
-        ### changed ###
-        if not self.delay:
-            self.stream = self._open()
-        newRolloverAt = self.computeRollover(currentTime)
-        while newRolloverAt <= currentTime:
-            newRolloverAt = newRolloverAt + self.interval
-        # If DST changes and midnight or weekly rollover, adjust for this.
-        if (self.when == 'MIDNIGHT' or self.when.startswith('W')) and not self.utc:
-            dstAtRollover = time.localtime(newRolloverAt)[-1]
-            if dstNow != dstAtRollover:
-                if not dstNow:  # DST kicks in before next rollover, so we need to deduct an hour
-                    addend = -3600
-                else:           # DST bows out before next rollover, so we need to add an hour
-                    addend = 3600
-                newRolloverAt += addend
-        self.rolloverAt = newRolloverAt
-
-
-def create_logger(project_name, confdict={}, modulepath=''):
-    """创建全局性的logger对象.
-
-    创建一个以{project_name}为名称的logger对象,logger的存放路径和TimeRotating的参数设置通过{confdict}设定,
-    如果是项目中的子模块需要进行development,那么会获取项目至子模块的目录路径,从而再日志存放目录下也已经该目录路径创建
-    目录,将子模块的日志存放在与该子模块目录名相同的日志目录下.
-
-    Parameters
-    ----------
-    project_name : [string]
-        执行项目或模块的目录名称
-    confdict : [dict]
-        对TimeRotating需要的参数设定, by default {}
-    modulepath : str, optional
-        模块相对整个项目的目录路径, by default ''
-
-    Returns
-    -------
-    [object]
-        logger 对象
-    """
-    if not hasattr(confdict, 'get'):
-        raise Exception('logging config error!')
-    if 'dirpath' in confdict.keys():
-        dirpath = confdict.get('dirpath')
-    elif not sys.platform.startswith('win'):
-        dirpath = '/tmp/logs'
+    handlers = [
+        dict(sink=log_file,
+             level=LOGGING_LEVEL,
+             filter=debug_filter,
+             enqueue=True,
+             #  serialize=True,
+             rotation="00:00",
+             retention=f"{backups} days",
+             format=fmt,
+             encoding="utf8",
+             ),
+        dict(sink=error_log_file,
+             level=logging.ERROR,
+             enqueue=True,
+             #  serialize=True,
+             rotation="00:00",
+             retention=f"{backups} days",
+             format=fmt,
+             backtrace=False,
+             diagnose=False,
+             encoding="utf8",
+             ),
+    ]
+    if debug:
+        handlers.append(dict(sink=sys.stderr, level="DEBUG", format=fmt))
     else:
-        dirpath = 'C:\\tmp\\logs'
-    if not modulepath:
-        logger_dir = os.path.join(dirpath, project_name)
-    else:
-        logger_dir = os.path.join(dirpath, modulepath, project_name)
-    if not os.path.exists(logger_dir):
-        try:
-            os.makedirs(logger_dir)
-        except Exception as e:
-            raise Exception(e)
-    if 'debug' in confdict.keys():
-        isdebug = confdict.get('debug')
-    else:
-        isdebug = False
+        pass
+    
+    logger.configure(handlers=handlers)
 
-    timerotating_params = {
-        'when': 'midnight' if 'when' not in confdict.keys() else confdict['when'],
-        'interval': 1,
-        'backupCount': 6 if 'backupCount' not in confdict.keys() else int(confdict['backupCount']),
-        'encoding': 'utf-8',
-        'delay': False,
-        'utc': False,
-        'atTime': None,
-    }
-    info_filepath = os.path.join(logger_dir, project_name + '.log')
-    error_filepath = os.path.join(logger_dir, "error_" + project_name + '.log')
-    # 创建handler
-    streamhandler = logging.StreamHandler()
-    info_filehandler = SafeTimedRotatingFileHandler(info_filepath, **timerotating_params)
-    timerotating_params['when'] = 'w6'
-    error_filehandler = SafeTimedRotatingFileHandler(error_filepath, **timerotating_params)
-    # 设置level
-    streamhandler.setLevel(logging.DEBUG)
-    info_filehandler.setLevel(logging.DEBUG)
-    error_filehandler.setLevel(logging.ERROR)
+    return debug
 
-    # 设置format
-    logformat = logging.Formatter(DEFAULT_FORMAT)
-    streamhandler.setFormatter(logformat)
-    info_filehandler.setFormatter(logformat)
-    error_filehandler.setFormatter(logformat)
 
-    # 创建logger
-    logger = logging.getLogger(project_name)
-    logger.setLevel(logging.DEBUG)
+debug_status = __make_module_logger()
 
-    # addHandler
-    logger.addHandler(streamhandler)
-    logger.addHandler(info_filehandler)
-    logger.addHandler(error_filehandler)
+logger.info(f'* create logger success debug: {debug_status} *')
 
-    # add filter
-    if not isdebug:
-        info_filehandler.addFilter(type('', (logging.Filter,), {'filter': staticmethod(
-            lambda r: r.levelno == logging.INFO or r.levelno == logging.WARNING)}))
-    else:
-        info_filehandler.addFilter(type('', (logging.Filter,), {'filter': staticmethod(
-            lambda r: r.levelno <= logging.WARNING)}))
-
-    # existing
-    # logger.disabled = False
-    # if not isdebug:
-        # logging.disable(logging.DEBUG)
-    # propagate
-    logger.propagate = False
-
-    return logger

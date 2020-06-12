@@ -81,6 +81,11 @@ def add_beeproject(struct, opts):
     """
     gitignore_all = templates.gitignore_all(opts)
 
+    path = [opts["project"], ".gitignore"]
+    struct = helpers.ensure(struct, path,
+                            gitignore_all,
+                            helpers.NO_OVERWRITE)
+    
     path = [opts["project"], "data", ".gitignore"]
     struct = helpers.ensure(struct, path,
                             templates.gitignore_data(opts),
@@ -105,13 +110,8 @@ def add_beeproject(struct, opts):
 
     path = [opts["project"], "models", ".gitignore"]
     struct = helpers.ensure(struct, path,
-                            gitignore_all,
+                            "",
                             helpers.NO_OVERWRITE)
-
-    # path = [opts["project"], "references", ".gitignore"]
-    # struct = helpers.ensure(struct, path,
-    #                         "",
-    #                         helpers.NO_OVERWRITE)
 
     path = [opts["project"], "reports", "figures", ".gitignore"]
     struct = helpers.ensure(struct, path,
@@ -137,13 +137,7 @@ def add_beeproject(struct, opts):
     init = templates.init(opts)
     struct = helpers.ensure(struct, path,
                             init,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts["project"], "environment.yaml"]
-    environment_yaml = templates.environment_yaml(opts)
-    struct = helpers.ensure(struct, path,
-                            environment_yaml,
-                            helpers.NO_OVERWRITE)
+                            helpers.NO_OVERWRITE) 
 
     path = [opts["project"], "src", opts["project"], "requirements.txt"]
     struct = helpers.reject(struct, path)
@@ -166,12 +160,6 @@ def add_beeproject(struct, opts):
                             init,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "project_config.yaml"]
-    project_config_yaml = templates.project_config(opts)
-    struct = helpers.ensure(struct, path,
-                            project_config_yaml,
-                            helpers.NO_OVERWRITE)
-
     path = [opts["project"], "src", opts["project"], opts['package'], "settings.py"]
     settings = templates.settings(opts)
     struct = helpers.ensure(struct, path,
@@ -184,22 +172,10 @@ def add_beeproject(struct, opts):
                             project_manage,
                             helpers.NO_OVERWRITE)
 
-    path = [opts["project"], "src", opts["project"], opts['package'], "_compat.py"]
-    compat = templates.compat(opts)
-    struct = helpers.ensure(struct, path,
-                            compat,
-                            helpers.NO_OVERWRITE)
-
     path = [opts["project"], "src", opts["project"], opts['package'], "_log.py"]
     log = templates.project_logger(opts)
     struct = helpers.ensure(struct, path,
                             log,
-                            helpers.NO_OVERWRITE)
-
-    path = [opts["project"], "src", opts["project"], opts['package'], "postgresql_operations.py"]
-    postgresql_operations = templates.postgresql(opts)
-    struct = helpers.ensure(struct, path,
-                            postgresql_operations,
                             helpers.NO_OVERWRITE)
 
     path = [opts["project"], "src", opts["project"], opts['package'], "submodule", "__init__.py"]

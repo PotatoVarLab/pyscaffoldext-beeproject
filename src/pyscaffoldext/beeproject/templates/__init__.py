@@ -15,8 +15,7 @@ def get_template(name):
         :obj:`string.Template`: template
     """
     file_name = "{name}.template".format(name=name)
-    data = resource_string("pyscaffoldext.beeproject.templates",
-                           file_name)
+    data = resource_string("pyscaffoldext.beeproject.templates", file_name)
     return string.Template(data.decode("UTF-8"))
 
 
@@ -186,32 +185,6 @@ def settings(opts):
         str: file content as string
     """
     template = get_template("settings")
-    return template.safe_substitute(opts)
-
-
-def compat(opts):
-    """Template of _compat.py
-
-    Args:
-        opts: mapping parameters as dictionary
-
-    Returns:
-        str: file content as string
-    """
-    template = get_template("_compat")
-    return template.safe_substitute(opts)
-
-
-def postgresql(opts):
-    """Template of postgresql_operations.py
-
-    Args:
-        opts: mapping parameters as dictionary
-
-    Returns:
-        str: file content as string
-    """
-    template = get_template("postgresql_operations")
     return template.safe_substitute(opts)
 
 
