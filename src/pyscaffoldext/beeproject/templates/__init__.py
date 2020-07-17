@@ -162,6 +162,19 @@ def manage(opts):
     return template.safe_substitute(opts)
 
 
+def settings(opts):
+    """Template of settings.py
+
+    Args:
+        opts: mapping parameters as dictionary
+
+    Returns:
+        str: file content as string
+    """
+    template = get_template("settings")
+    return template.safe_substitute(opts)
+
+
 def submanage(opts):
     """Template of manage.py within submodule
 
@@ -175,7 +188,7 @@ def submanage(opts):
     return template.safe_substitute(opts)
 
 
-def settings(opts):
+def subsettings(opts):
     """Template of settings.py
 
     Args:
@@ -184,7 +197,7 @@ def settings(opts):
     Returns:
         str: file content as string
     """
-    template = get_template("settings")
+    template = get_template("subsettings")
     return template.safe_substitute(opts)
 
 

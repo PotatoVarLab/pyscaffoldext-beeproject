@@ -15,6 +15,7 @@ project_dir
 |-- project_src                     # 项目源码
 |   |-- __init__.py
 |   |-- _log.py                     # 日志模块(自动化执行)
+|   |-- .env.example                # 项目通过环境变量配置示例文件
 |   |-- manage.py                   # 项目主模块
 |   |-- settings.py                 # 项目主模块配置(持久化模型,特殊文件等)
 |   |-- submodule                   # 项目子模块
@@ -22,9 +23,7 @@ project_dir
 |   |   |-- manage.py                   # 项目子模块主程序
 |   |   `-- settings.py                 # 项目子模块主程序配置
 |   |-- tests                       # 测试目录
-|   |   `-- test_module1.py             # 子模块测试
 |   `-- utils
-|       `-- __init__.py
 |-- supervisor_project.ini          # 项目supervisor配置
 `-- run_project_main.py             # 运行项目主模块脚本
 

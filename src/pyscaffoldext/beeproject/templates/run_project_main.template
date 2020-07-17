@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 The project main script which executed with starting.
-Deployment on production environment,used environment variables.
+Recommended Use environment variables, deployment on production.
 """
 
 from __future__ import absolute_import
@@ -9,19 +9,16 @@ from __future__ import division
 from __future__ import print_function
 
 
-import os
-import sys
-
-
 print(__doc__)
 
 
-#### import project pgk ####
-# from beeproject_temp.manage import ModuleNameInterfaceClass
+if __name__ == "__main__":
+    #### import package ####
+    # from temp_pkg.manage import ModuleNameInterfaceClass
 
-#### module initialization ####
-# handler = ModuleNameInterfaceClass()
+    #### module initialization ####
+    # handler = ModuleNameInterfaceClass()
 
-#### prepare test data ####
-# meta = {}
-# handler = handler.run_module(meta)
+    #### prepare test data ####
+    # meta = {}
+    # handler = handler.run_module(meta)

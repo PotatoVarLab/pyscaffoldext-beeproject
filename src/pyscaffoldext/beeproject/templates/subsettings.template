@@ -1,0 +1,18 @@
+# -*- coding: utf-8 -*-
+
+
+from pathlib import Path
+from decouple import config
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
+#------------------------------------------------------------------------------
+# About Module
+#------------------------------------------------------------------------------
+## The module name
+MODULE_NAME = BASE_DIR.name
+
+## The debug status
+DEBUG = False
+

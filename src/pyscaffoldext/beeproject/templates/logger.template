@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
-import re
 import sys
 import logging
+from pathlib import Path
 from loguru import logger
 
 from .settings import BASE_DIR, MODULE_LOGGER_CONFIG
@@ -12,8 +11,8 @@ __all__ = ['debug_status']
 
 
 default_logger_config = {
-    "directory": f"/tmp/logs/{os.path.basename(BASE_DIR)}",
-    "name": os.path.basename(BASE_DIR),
+    "directory": f"/tmp/logs/{Path(BASE_DIR).name}",
+    "name": Path(BASE_DIR).name,
     "debug": True,
     "backups": 10,
     # please read loguru format docs
@@ -28,21 +27,23 @@ def __make_module_logger():
     if isinstance(MODULE_LOGGER_CONFIG, dict):
         for k, v in MODULE_LOGGER_CONFIG.items():
             logger_config[k] = v
-            
+
     fmt = logger_config.get('format', default_logger_config['format'])
-    directory = logger_config.get('directory', default_logger_config['directory'])
+    directory = logger_config.get(
+        'directory', default_logger_config['directory'])
     name = logger_config.get('name', default_logger_config['name'])
     debug = logger_config.get('debug', True)
     backups = logger_config.get('backups', 10)
 
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    log_file = os.path.join(directory, f"{name}.log")
-    error_log_file = os.path.join(directory, f"error_{name}.log")
+    if not Path(directory).exists():
+        Path(directory).mkdir(parents=True)
+    log_file = Path(directory).joinpath(f"{name}.log")
+    error_log_file = Path(directory).joinpath(f"error_{name}.log")
 
     LOGGING_LEVEL = logging.DEBUG if debug else logging.INFO
-    
-    debug_filter = lambda record: record["level"].no < 40 if debug else record["level"].no in [20, 30]
+
+    def debug_filter(record):
+        return record["level"].no < 40 if debug else record["level"].no in [20, 30]
 
     handlers = [
         dict(sink=log_file,
@@ -71,7 +72,7 @@ def __make_module_logger():
         handlers.append(dict(sink=sys.stderr, level="DEBUG", format=fmt))
     else:
         pass
-    
+
     logger.configure(handlers=handlers)
 
     return debug
@@ -80,4 +81,3 @@ def __make_module_logger():
 debug_status = __make_module_logger()
 
 logger.info(f'* create logger success debug: {debug_status} *')
-
